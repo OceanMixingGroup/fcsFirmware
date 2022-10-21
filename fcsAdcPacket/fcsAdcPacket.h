@@ -18,8 +18,8 @@ Date: Oct 19, 2022
 #define           LTC1867_CS          10                     //LTC1867 SPI CS PIN
 #define           CW(N)               ((0x80+(N<<4)+0x04)<<8)        // Bitwise OR with channel commands for unipolar mode (16 bit)
 #define           FILT_BUFFER_SIZE    2048                    //Length of 400Hz samples channel BUFFER for acq and digital IIR filtering 
-#define           DIVE_PACKET         10                      //length of dive packet before we start data reduction algorithms
-#define           DR_BUFFER_SIZE      FILT_BUFFER_SIZE/4
+#define			  DOWNSAMPLE_FACTOR	  4
+#define           DR_BUFFER_SIZE      FILT_BUFFER_SIZE/DOWNSAMPLE_FACTOR
 
 /*structure for LTC1867 ADC raw data aquisition ch0-ch7 in uint16_t*/
 typedef struct {
@@ -87,39 +87,54 @@ typedef struct {
         float32_t volts[DR_BUFFER_SIZE];
 }adcVoltsPacket;
 
+void filterAndDownSample(adcBuffer  	*pSrcBuffer, 
+						 adcVoltsPacket *pDstBuffer1,
+						 adcPacket		*pDstBuffer2,
+						 uint16_t        blockSize,
+						 uint8_t         downSampleFactor);
 	
 void getLTC1867RawData(adcBuffer 		*pSrcBuffer, 
                        uint16_t 		*chanNum, 
                        uint16_t 		blockSize);
 
 void getLTC1867FilterData(adcBufferVolts 	*pSrcBuffer, 
-			  adcBufferVolts 	*pDstBuffer, 
-		          uint16_t 	     	blockSize);
+						  adcBufferVolts 	*pDstBuffer, 
+						  uint16_t 	     	blockSize);
 						  
-void convertRawToVolts(adcBuffer 		*pSrcBuffer, 
-		       adcBufferVolts 		*pDstBuffer,
-		       uint16_t         	blockSize);
+void convertRawToVolts(adcBuffer 			*pSrcBuffer, 
+					   adcBufferVolts 		*pDstBuffer,
+					   uint16_t         	blockSize);
 
-void convertVoltstoRaw(adcBufferVolts 		*pSrcBuffer,
-		       adcBuffer 		*pDstBuffer,
-		       uint16_t 		blockSize);
+void convertSampleToVolt(adcBuffer 			*pSrcBuffer,
+						 adcBufferVolts 	*pDstBuffer,
+						 uint16_t 			blockSize,
+						 uint16_t 			sampleLoc);
+
+void convertVoltsToRaw(adcVoltsPacket 	*pSrcBuffer,
+					   adcPacket 		*pDstBuffer,
+					   uint16_t 		blockSize);
 					   
 void arm_fill_uint16(uint16_t 			value,
-		     uint16_t 			*pDst,
-		     uint32_t 			blockSize);
+					 uint16_t 			*pDst,
+					 uint32_t 			blockSize);
 
 void arm_float32_to_uint16(float32_t 		*pSrc,
-			   uint16_t 		*pDst,
-			   uint32_t 		blockSize);
+						   uint16_t 		*pDst,
+						   uint32_t 		blockSize);
 
 void arm_uint16_to_float32(uint16_t 		*pSrc,
-			   float32_t 		*pDst,
-			   uint32_t 		blockSize);
+						   float32_t 		*pDst,
+						   uint32_t 		blockSize);
 						   
 
 void downSample400HzTo100Hz(adcBufferVolts      *pSrcBuffer, 
                             adcVoltsPacket      *pDstBuffer,
-                            uint16_t            blockSize);
+                            uint16_t            blockSize,
+							uint8_t 			downSampleFactor);
+
+void downSample400HzTo100HzRaw(adcBuffer 		*pSrcBuffer,
+							   adcPacket 		*pDstBuffer,
+							   uint16_t 		blockSize);
 
 void initializeIIR(void);
         

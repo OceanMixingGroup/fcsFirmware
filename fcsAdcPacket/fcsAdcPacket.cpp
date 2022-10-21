@@ -30,6 +30,30 @@ void getLTC1867RawData(adcBuffer *pSrcBuffer, uint16_t *chanelNum, uint16_t bloc
   spiTransferWord(LTC1867_CS, *ch++,&(pSrcBuffer->ch7[blockSize]));
 }
 
+void filterAndDownSample(adcBuffer  	*pSrcBuffer, 
+						 adcVoltsPacket *pDstBuffer1,
+						 adcPacket		*pDstBuffer2,
+						 uint16_t        blockSize,
+						 uint8_t         downSampleFactor)
+{
+    /**    
+ * @brief Raw to volts conversion and Lowpass Filtering of a 
+   400Hz sampled array and downsample to 100 Hz sampled array    
+ * @param[in]       *pSrcBuffer pointer to structure raw 400Hz array uint16_t value input (unfiltered) 
+ * @param[out]      *pDstBuffer1 pointer to structure float32_t 100Hz array value output (filtered) 
+ * @param[out]      *pDstBuffer2 pointer to structure uint16_t 100Hz array value output (filtered) 
+ * @param[in]       blockSize length of the input buffer 
+ * @param[in]       downSampleFactor divide factor for input buffer (Ex: 400Hz to 100Hz so downSampleFactor is 4); 
+ * @return none.    
+ *    
+ */
+ adcBufferVolts tempBuffer1, tempBuffer2; 
+ convertRawToVolts(pSrcBuffer,&tempBuffer1, blockSize);
+ getLTC1867FilterData(&tempBuffer1, &tempBuffer2, blockSize);
+ downSample400HzTo100Hz(&tempBuffer2, pDstBuffer1, blockSize/downSampleFactor, downSampleFactor);
+ convertVoltsToRaw(pDstBuffer1, pDstBuffer2,blockSize/downSampleFactor);
+}
+
 void getLTC1867FilterData(adcBufferVolts *pSrcBuffer, adcBufferVolts *pDstBuffer, uint16_t blockSize)
 {
 /**    
@@ -70,7 +94,30 @@ void convertRawToVolts(adcBuffer *pSrcBuffer, adcBufferVolts *pDstBuffer, uint16
 	arm_uint16_to_float32(&(pSrcBuffer->ch7[0]),&(pDstBuffer->ch7[0]),blockSize);
 }
 
-void convertVoltstoRaw(adcBufferVolts *pSrcBuffer, adcBuffer *pDstBuffer, uint16_t blockSize)
+
+void convertSampleToVolt(adcBuffer *pSrcBuffer, adcBufferVolts *pDstBuffer, uint16_t blockSize, uint16_t sampleLoc)
+{
+		/**    
+ * @brief Converts one Sample structure from uint16_t to float32_t    
+ * @param[in]       *pSrcBuffer pointer to structure uint16_t value input 
+ * @param[out]      *pDstBuffer pointer to structure float32_t value output    
+ * @param[in]       blockSize length of the buffer
+ * @param[in]       sampleLoc location of buffer pointer
+ * @return none.    
+ *    
+ */
+	arm_uint16_to_float32(&(pSrcBuffer->ch0[sampleLoc]),&(pDstBuffer->ch0[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ch1[sampleLoc]),&(pDstBuffer->ch1[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ch2[sampleLoc]),&(pDstBuffer->ch2[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ch3[sampleLoc]),&(pDstBuffer->ch3[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ch4[sampleLoc]),&(pDstBuffer->ch4[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ch5[sampleLoc]),&(pDstBuffer->ch5[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ch6[sampleLoc]),&(pDstBuffer->ch6[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ch7[sampleLoc]),&(pDstBuffer->ch7[sampleLoc]),blockSize);
+}
+
+
+void convertVoltsToRaw(adcVoltsPacket *pSrcBuffer, adcPacket *pDstBuffer, uint16_t blockSize)
 {
 	/**    
  * @brief Converts the array inside the structure from float32_t to uint16_t    
@@ -92,18 +139,46 @@ void convertVoltstoRaw(adcBufferVolts *pSrcBuffer, adcBuffer *pDstBuffer, uint16
 	
 }
 
-void downSample400HzTo100Hz(adcBufferVolts *pSrcBuffer, adcVoltsPacket *pDstBuffer, uint16_t blockSize)
+void downSample400HzTo100Hz(adcBufferVolts *pSrcBuffer, adcVoltsPacket *pDstBuffer, uint16_t blockSize, uint8_t downSampleFactor)
 {
   /**    
  * @brief Downsamples a 400Hz sampled array to 100 Hz sampled array   
  * @param[in]       *pSrcBuffer pointer to structure float32_t 400Hz array value input 
  * @param[out]      *pDstBuffer pointer to structure float32_t 100Hz array value output    
  * @param[in]       blockSize length of the buffer to be downsized to i.e. 100Hz 
+ * @param[in]       downSampleFactor Factor by which downsampled from i.e. 4 for 400Hz to 100Hz
  * @return none.    
  *    
  */
   uint16_t blkCnt = 0;
   adcBufferVolts tempBuffer;
+  tempBuffer = *pSrcBuffer;
+  while(blkCnt < blockSize)
+  {
+    (pDstBuffer->ch0[blkCnt])      =  (tempBuffer.ch0[downSampleFactor*blkCnt]);
+    (pDstBuffer->ch1[blkCnt])      =  (tempBuffer.ch1[downSampleFactor*blkCnt]);
+    (pDstBuffer->ch2[blkCnt])      =  (tempBuffer.ch2[downSampleFactor*blkCnt]);
+    (pDstBuffer->ch3[blkCnt])      =  (tempBuffer.ch3[downSampleFactor*blkCnt]);
+    (pDstBuffer->ch4[blkCnt])      =  (tempBuffer.ch4[downSampleFactor*blkCnt]);
+    (pDstBuffer->ch5[blkCnt])      =  (tempBuffer.ch5[downSampleFactor*blkCnt]);
+    (pDstBuffer->ch6[blkCnt])      =  (tempBuffer.ch6[downSampleFactor*blkCnt]);
+    (pDstBuffer->ch7[blkCnt])      =  (tempBuffer.ch7[downSampleFactor*blkCnt]);
+    blkCnt++;
+  }
+}
+
+void downSample400HzTo100HzRaw(adcBuffer *pSrcBuffer, adcPacket *pDstBuffer, uint16_t blockSize)
+{
+	 /**    
+ * @brief Downsamples a 400Hz sampled array to 100 Hz sampled array   
+ * @param[in]       *pSrcBuffer pointer to structure uint16_t 400Hz array value input 
+ * @param[out]      *pDstBuffer pointer to structure uint16_t 100Hz array value output    
+ * @param[in]       blockSize length of the buffer to be downsized to i.e. 100Hz 
+ * @return none.    
+ *    
+ */
+ uint16_t blkCnt = 0;
+  adcBuffer tempBuffer;
   tempBuffer = *pSrcBuffer;
   while(blkCnt < blockSize)
   {
@@ -118,6 +193,7 @@ void downSample400HzTo100Hz(adcBufferVolts *pSrcBuffer, adcVoltsPacket *pDstBuff
     blkCnt++;
   }
 }
+
 
 void initializeIIR(void)
 {
