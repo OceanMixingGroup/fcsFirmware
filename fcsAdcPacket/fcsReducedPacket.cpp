@@ -24,7 +24,7 @@ void calculateDRPacket(adcVoltsPacket *pSrcBuffer, reducedPacket *pDstBuffer, ui
 	arm_mult_f32(&(pSrcBuffer->ch6[0]),&(pSrcBuffer->ch6[0]), &tempBuffer[0], blockSize);
 	arm_mean_f32(&tempBuffer[0],blockSize,&(pDstBuffer->t2SqMean));
 	despikeShearSegment(&(pSrcBuffer->ch2[0]),blockSize);
-    despikeShearSegment(&(pSrcBuffer->ch7[0]),blockSize);
+    	despikeShearSegment(&(pSrcBuffer->ch7[0]),blockSize);
 }
 
 
