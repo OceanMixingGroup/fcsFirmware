@@ -52,6 +52,8 @@ void filterAndDownSample(adcBuffer  	*pSrcBuffer,
  getLTC1867FilterData(&tempBuffer1, &tempBuffer2, blockSize);
  downSample400HzTo100Hz(&tempBuffer2, pDstBuffer1, blockSize/downSampleFactor, downSampleFactor);
  convertVoltsToRaw(pDstBuffer1, pDstBuffer2,blockSize/downSampleFactor);
+ pDstBuffer2->seconds = pSrcBuffer->seconds;
+ pDstBuffer1->seconds = pSrcBuffer->seconds;
 }
 
 void getLTC1867FilterData(adcBufferVolts *pSrcBuffer, adcBufferVolts *pDstBuffer, uint16_t blockSize)
@@ -72,6 +74,10 @@ void getLTC1867FilterData(adcBufferVolts *pSrcBuffer, adcBufferVolts *pDstBuffer
 	arm_biquad_cascade_df1_f32(&adcFiltCh5,&(pSrcBuffer->ch5[0]),&(pDstBuffer->ch5[0]),blockSize);
 	arm_biquad_cascade_df1_f32(&adcFiltCh6,&(pSrcBuffer->ch6[0]),&(pDstBuffer->ch6[0]),blockSize);
 	arm_biquad_cascade_df1_f32(&adcFiltCh7,&(pSrcBuffer->ch7[0]),&(pDstBuffer->ch7[0]),blockSize);
+	arm_biquad_cascade_df1_f32(&adcFiltAx,&(pSrcBuffer->ax[0]),&(pDstBuffer->ax[0]),blockSize);
+	arm_biquad_cascade_df1_f32(&adcFiltAy,&(pSrcBuffer->ay[0]),&(pDstBuffer->ay[0]),blockSize);
+	arm_biquad_cascade_df1_f32(&adcFiltAz,&(pSrcBuffer->az[0]),&(pDstBuffer->az[0]),blockSize);
+	
 }
 
 void convertRawToVolts(adcBuffer *pSrcBuffer, adcBufferVolts *pDstBuffer, uint16_t blockSize)
@@ -92,6 +98,9 @@ void convertRawToVolts(adcBuffer *pSrcBuffer, adcBufferVolts *pDstBuffer, uint16
 	arm_uint16_to_float32(&(pSrcBuffer->ch5[0]),&(pDstBuffer->ch5[0]),blockSize);
 	arm_uint16_to_float32(&(pSrcBuffer->ch6[0]),&(pDstBuffer->ch6[0]),blockSize);
 	arm_uint16_to_float32(&(pSrcBuffer->ch7[0]),&(pDstBuffer->ch7[0]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ax[0]),&(pDstBuffer->ax[0]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ay[0]),&(pDstBuffer->ay[0]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->az[0]),&(pDstBuffer->az[0]),blockSize);
 }
 
 
@@ -114,6 +123,9 @@ void convertSampleToVolt(adcBuffer *pSrcBuffer, adcBufferVolts *pDstBuffer, uint
 	arm_uint16_to_float32(&(pSrcBuffer->ch5[sampleLoc]),&(pDstBuffer->ch5[sampleLoc]),blockSize);
 	arm_uint16_to_float32(&(pSrcBuffer->ch6[sampleLoc]),&(pDstBuffer->ch6[sampleLoc]),blockSize);
 	arm_uint16_to_float32(&(pSrcBuffer->ch7[sampleLoc]),&(pDstBuffer->ch7[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ax[sampleLoc]),&(pDstBuffer->ax[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->ay[sampleLoc]),&(pDstBuffer->ay[sampleLoc]),blockSize);
+	arm_uint16_to_float32(&(pSrcBuffer->az[sampleLoc]),&(pDstBuffer->az[sampleLoc]),blockSize);
 }
 
 
@@ -134,9 +146,10 @@ void convertVoltsToRaw(adcVoltsPacket *pSrcBuffer, adcPacket *pDstBuffer, uint16
 	arm_float32_to_uint16(&(pSrcBuffer->ch4[0]),&(pDstBuffer->ch4[0]),blockSize);
 	arm_float32_to_uint16(&(pSrcBuffer->ch5[0]),&(pDstBuffer->ch5[0]),blockSize);
 	arm_float32_to_uint16(&(pSrcBuffer->ch6[0]),&(pDstBuffer->ch6[0]),blockSize);
-	arm_float32_to_uint16(&(pSrcBuffer->ch7[0]),&(pDstBuffer->ch7[0]),blockSize);
-	
-	
+	arm_float32_to_uint16(&(pSrcBuffer->ch7[0]),&(pDstBuffer->ch7[0]),blockSize);	
+	arm_float32_to_uint16(&(pSrcBuffer->ax[0]),&(pDstBuffer->ax[0]),blockSize);	
+	arm_float32_to_uint16(&(pSrcBuffer->ay[0]),&(pDstBuffer->ay[0]),blockSize);	
+	arm_float32_to_uint16(&(pSrcBuffer->az[0]),&(pDstBuffer->az[0]),blockSize);	
 }
 
 void downSample400HzTo100Hz(adcBufferVolts *pSrcBuffer, adcVoltsPacket *pDstBuffer, uint16_t blockSize, uint8_t downSampleFactor)
@@ -153,6 +166,7 @@ void downSample400HzTo100Hz(adcBufferVolts *pSrcBuffer, adcVoltsPacket *pDstBuff
   uint16_t blkCnt = 0;
   adcBufferVolts tempBuffer;
   tempBuffer = *pSrcBuffer;
+  //(pDstBuffer->seconds)      =  (tempBuffer.seconds);
   while(blkCnt < blockSize)
   {
     (pDstBuffer->ch0[blkCnt])      =  (tempBuffer.ch0[downSampleFactor*blkCnt]);
@@ -163,6 +177,9 @@ void downSample400HzTo100Hz(adcBufferVolts *pSrcBuffer, adcVoltsPacket *pDstBuff
     (pDstBuffer->ch5[blkCnt])      =  (tempBuffer.ch5[downSampleFactor*blkCnt]);
     (pDstBuffer->ch6[blkCnt])      =  (tempBuffer.ch6[downSampleFactor*blkCnt]);
     (pDstBuffer->ch7[blkCnt])      =  (tempBuffer.ch7[downSampleFactor*blkCnt]);
+	(pDstBuffer->ax[blkCnt])      =  (tempBuffer.ax[downSampleFactor*blkCnt]);
+	(pDstBuffer->ay[blkCnt])      =  (tempBuffer.ay[downSampleFactor*blkCnt]);
+	(pDstBuffer->az[blkCnt])      =  (tempBuffer.az[downSampleFactor*blkCnt]);
     blkCnt++;
   }
 }
@@ -190,6 +207,9 @@ void downSample400HzTo100HzRaw(adcBuffer *pSrcBuffer, adcPacket *pDstBuffer, uin
     (pDstBuffer->ch5[blkCnt])      =  (tempBuffer.ch5[4*blkCnt]);
     (pDstBuffer->ch6[blkCnt])      =  (tempBuffer.ch6[4*blkCnt]);
     (pDstBuffer->ch7[blkCnt])      =  (tempBuffer.ch7[4*blkCnt]);
+	(pDstBuffer->ax[blkCnt])      =  (tempBuffer.ax[4*blkCnt]);
+	(pDstBuffer->ay[blkCnt])      =  (tempBuffer.ay[4*blkCnt]);
+	(pDstBuffer->az[blkCnt])      =  (tempBuffer.az[4*blkCnt]);
     blkCnt++;
   }
 }
@@ -231,6 +251,9 @@ The initialization function which must be used is arm_biquad_cascade_df1_mve_ini
   arm_biquad_cascade_df1_init_f32(&adcFiltCh5, NUM_SECTIONS, pCoeff400HzSampling, pStateCh5);
   arm_biquad_cascade_df1_init_f32(&adcFiltCh6, NUM_SECTIONS, pCoeff400HzSampling, pStateCh6);
   arm_biquad_cascade_df1_init_f32(&adcFiltCh7, NUM_SECTIONS, pCoeff400HzSampling, pStateCh7);
+  arm_biquad_cascade_df1_init_f32(&adcFiltAx, NUM_SECTIONS, pCoeff400HzSampling, pStateAx);
+  arm_biquad_cascade_df1_init_f32(&adcFiltAy, NUM_SECTIONS, pCoeff400HzSampling, pStateAy);
+  arm_biquad_cascade_df1_init_f32(&adcFiltAz, NUM_SECTIONS, pCoeff400HzSampling, pStateAz);
 }
 
 void arm_fill_uint16(uint16_t value,  uint16_t * pDst,  uint32_t blockSize)
@@ -426,3 +449,73 @@ void arm_uint16_to_float32(uint16_t * pSrc,  float32_t * pDst, uint32_t blockSiz
     blkCnt--;
   }
 }
+
+
+
+
+
+void arm_copy_uint32_t(uint32_t * pSrc, uint32_t * pDst, uint16_t blockSize)
+{
+  /**    
+ * @brief Copies the elements of a uint32_t vector.     
+ * @param[in]       *pSrc points to input vector    
+ * @param[out]      *pDst points to output vector    
+ * @param[in]       blockSize length of the input vector   
+ * @return none.    
+ *    
+ */
+  uint16_t blkCnt;                               /* loop counter */
+
+
+#ifndef ARM_MATH_CM0_FAMILY
+
+  /* Run the below code for Cortex-M4 and Cortex-M3 */
+  uint32_t in1, in2, in3, in4;
+
+  /*loop Unrolling */
+  blkCnt = blockSize >> 2u;
+
+  /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.    
+   ** a second loop below computes the remaining 1 to 3 samples. */
+  while(blkCnt > 0u)
+  {
+    /* C = A */
+    /* Copy and then store the values in the destination buffer */
+    in1 = *pSrc++;
+    in2 = *pSrc++;
+    in3 = *pSrc++;
+    in4 = *pSrc++;
+
+    *pDst++ = in1;
+    *pDst++ = in2;
+    *pDst++ = in3;
+    *pDst++ = in4;
+
+    /* Decrement the loop counter */
+    blkCnt--;
+  }
+
+  /* If the blockSize is not a multiple of 4, compute any remaining output samples here.    
+   ** No loop unrolling is used. */
+  blkCnt = blockSize % 0x4u;
+
+#else
+
+  /* Run the below code for Cortex-M0 */
+
+  /* Loop over blockSize number of values */
+  blkCnt = blockSize;
+
+#endif /* #ifndef ARM_MATH_CM0_FAMILY */
+
+  while(blkCnt > 0u)
+  {
+    /* C = A */
+    /* Copy and then store the value in the destination buffer */
+    *pDst++ = *pSrc++;
+
+    /* Decrement the loop counter */
+    blkCnt--;
+  }
+}
+
