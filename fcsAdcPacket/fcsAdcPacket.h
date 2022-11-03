@@ -34,8 +34,8 @@ typedef struct {
         uint16_t ax[FILT_BUFFER_SIZE];
         uint16_t ay[FILT_BUFFER_SIZE];
         uint16_t az[FILT_BUFFER_SIZE]; 
-        uint32_t seconds[FILT_BUFFER_SIZE];
-        uint16_t volts[FILT_BUFFER_SIZE];
+        uint32_t seconds;
+        uint16_t volts;
 }adcBuffer;				
 
 /*structure for LTC1867 ADC data ch0-ch7 converted to float32_t (volts)*/
@@ -51,6 +51,7 @@ typedef struct {
         float32_t ax[FILT_BUFFER_SIZE];
         float32_t ay[FILT_BUFFER_SIZE];
         float32_t az[FILT_BUFFER_SIZE]; 
+		
 }adcBufferVolts;
 
 /*structure for LTC1867 ADC data ch0-ch7 downsampled to raw counts from 400Hz to 100Hz*/
@@ -66,8 +67,8 @@ typedef struct {
         uint16_t ax[DR_BUFFER_SIZE];
         uint16_t ay[DR_BUFFER_SIZE];
         uint16_t az[DR_BUFFER_SIZE]; 
-        uint32_t seconds[DR_BUFFER_SIZE];
-        uint16_t volts[DR_BUFFER_SIZE];
+        uint32_t seconds;
+        uint16_t volts;
 }adcPacket;
 
 /*structure for LTC1867 ADC data ch0-ch7 downsampled to volts from 400Hz to 100Hz*/
@@ -83,58 +84,62 @@ typedef struct {
         float32_t ax[DR_BUFFER_SIZE];
         float32_t ay[DR_BUFFER_SIZE];
         float32_t az[DR_BUFFER_SIZE]; 
-        float32_t seconds[DR_BUFFER_SIZE];
-        float32_t volts[DR_BUFFER_SIZE];
+        uint32_t  seconds;
+        float32_t volts;
 }adcVoltsPacket;
 
-void filterAndDownSample(adcBuffer  	*pSrcBuffer, 
-						 adcVoltsPacket *pDstBuffer1,
-						 adcPacket		*pDstBuffer2,
-						 uint16_t        blockSize,
-						 uint8_t         downSampleFactor);
+void filterAndDownSample(adcBuffer  		*pSrcBuffer, 
+			 adcVoltsPacket 	*pDstBuffer1,
+			 adcPacket		*pDstBuffer2,
+			 uint16_t  		blockSize,
+			 uint8_t         	downSampleFactor);
 	
 void getLTC1867RawData(adcBuffer 		*pSrcBuffer, 
                        uint16_t 		*chanNum, 
                        uint16_t 		blockSize);
-
+					   
 void getLTC1867FilterData(adcBufferVolts 	*pSrcBuffer, 
-						  adcBufferVolts 	*pDstBuffer, 
-						  uint16_t 	     	blockSize);
+			  adcBufferVolts 	*pDstBuffer, 
+			  uint16_t 	     	blockSize);
 						  
-void convertRawToVolts(adcBuffer 			*pSrcBuffer, 
-					   adcBufferVolts 		*pDstBuffer,
-					   uint16_t         	blockSize);
+void convertRawToVolts(adcBuffer		*pSrcBuffer, 
+		       adcBufferVolts 		*pDstBuffer,
+		       uint16_t         	blockSize);
 
-void convertSampleToVolt(adcBuffer 			*pSrcBuffer,
-						 adcBufferVolts 	*pDstBuffer,
-						 uint16_t 			blockSize,
-						 uint16_t 			sampleLoc);
+void convertSampleToVolt(adcBuffer		*pSrcBuffer,
+			 adcBufferVolts 	*pDstBuffer,
+			 uint16_t 		blockSize,
+			 uint16_t 		sampleLoc);
 
-void convertVoltsToRaw(adcVoltsPacket 	*pSrcBuffer,
-					   adcPacket 		*pDstBuffer,
-					   uint16_t 		blockSize);
+void convertVoltsToRaw(adcVoltsPacket 		*pSrcBuffer,
+		       adcPacket		*pDstBuffer,
+	               uint16_t			blockSize);
 					   
 void arm_fill_uint16(uint16_t 			value,
-					 uint16_t 			*pDst,
-					 uint32_t 			blockSize);
+		     uint16_t 			*pDst,
+	             uint32_t 			blockSize);
 
 void arm_float32_to_uint16(float32_t 		*pSrc,
-						   uint16_t 		*pDst,
-						   uint32_t 		blockSize);
+			   uint16_t 		*pDst,
+			   uint32_t 		blockSize);
 
-void arm_uint16_to_float32(uint16_t 		*pSrc,
-						   float32_t 		*pDst,
-						   uint32_t 		blockSize);
+void arm_uint16_to_float32(uint16_t		*pSrc,
+			   float32_t 		*pDst,
+			   uint32_t 		blockSize);
 						   
 
 void downSample400HzTo100Hz(adcBufferVolts      *pSrcBuffer, 
                             adcVoltsPacket      *pDstBuffer,
                             uint16_t            blockSize,
-							uint8_t 			downSampleFactor);
+			    uint8_t		downSampleFactor);
 
-void downSample400HzTo100HzRaw(adcBuffer 		*pSrcBuffer,
-							   adcPacket 		*pDstBuffer,
-							   uint16_t 		blockSize);
+void downSample400HzTo100HzRaw(adcBuffer	*pSrcBuffer,
+	          	   adcPacket 		*pDstBuffer,
+			   uint16_t 		blockSize);
+							   
+void arm_copy_uint32_t(uint32_t * 		pSrc, 
+		       uint32_t * 		pDst,
+		       uint16_t 		blockSize);
 
 void initializeIIR(void);
         
