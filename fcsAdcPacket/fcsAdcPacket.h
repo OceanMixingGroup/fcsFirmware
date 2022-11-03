@@ -18,7 +18,7 @@ Date: Oct 19, 2022
 #define           LTC1867_CS          10                     //LTC1867 SPI CS PIN
 #define           CW(N)               ((0x80+(N<<4)+0x04)<<8)        // Bitwise OR with channel commands for unipolar mode (16 bit)
 #define           FILT_BUFFER_SIZE    2048                    //Length of 400Hz samples channel BUFFER for acq and digital IIR filtering 
-#define			  DOWNSAMPLE_FACTOR	  4
+#define		  DOWNSAMPLE_FACTOR   4
 #define           DR_BUFFER_SIZE      FILT_BUFFER_SIZE/DOWNSAMPLE_FACTOR
 
 /*structure for LTC1867 ADC raw data aquisition ch0-ch7 in uint16_t*/
