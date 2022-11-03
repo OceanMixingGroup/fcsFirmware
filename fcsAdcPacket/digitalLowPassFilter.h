@@ -50,7 +50,10 @@ arm_biquad_casd_df1_inst_f32 adcFiltCh3;
 arm_biquad_casd_df1_inst_f32 adcFiltCh4;  
 arm_biquad_casd_df1_inst_f32 adcFiltCh5;  
 arm_biquad_casd_df1_inst_f32 adcFiltCh6;
-arm_biquad_casd_df1_inst_f32 adcFiltCh7;    
+arm_biquad_casd_df1_inst_f32 adcFiltCh7;  
+arm_biquad_casd_df1_inst_f32 adcFiltAx;  
+arm_biquad_casd_df1_inst_f32 adcFiltAy;  
+arm_biquad_casd_df1_inst_f32 adcFiltAz;    
 /*The coefficients and state variables for a filter are stored together in an instance data structure. 
 A separate instance structure must be defined for each filter. 
 Coefficient arrays may be shared among several instances while state variable arrays cannot be shared. 
@@ -65,6 +68,10 @@ float32_t         pStateCh4[NUM_SECTIONS * 4] = {0};
 float32_t         pStateCh5[NUM_SECTIONS * 4] = {0};
 float32_t         pStateCh6[NUM_SECTIONS * 4] = {0};
 float32_t         pStateCh7[NUM_SECTIONS * 4] = {0};
+float32_t         pStateAx[NUM_SECTIONS * 4] = {0};
+float32_t         pStateAy[NUM_SECTIONS * 4] = {0};
+float32_t         pStateAz[NUM_SECTIONS * 4] = {0};
+
 
 /*The pState points to state variables array. Each Biquad stage has 4 state variables x[n-1], x[n-2], y[n-1], and y[n-2]. 
  The state variables are arranged in the pState array as:
